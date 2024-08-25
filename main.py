@@ -4,8 +4,17 @@ import re
 import json
 import csv
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from urllib.parse import urlparse, urljoin
 
-def scrape_website(url):
+def scrape_website(url, max_depth, current_depth=0, visited=None):
+    if visited is None:
+        visited = set()
+    
+    if current_depth > max_depth or url in visited:
+        return []
+
+    visited.add(url)
+    
     try:
         response = requests.get(url)
         response.raise_for_status()
@@ -13,7 +22,23 @@ def scrape_website(url):
         
         links = [a.get('href') for a in soup.find_all('a', href=True)]
         
-        valid_links = [link for link in links if link.startswith('http')]
+        hostname = urlparse(url).hostname
+        valid_links = []
+        
+        for link in links:
+            if link.startswith('http'):
+                if urlparse(link).hostname == hostname:
+                    valid_links.append(link)
+            else:
+                valid_links.append(urljoin(url, link))
+        
+        # Process the current page
+        process_link(url)
+        
+        # Recursively scrape valid links
+        for link in valid_links:
+            if link not in visited:
+                valid_links.extend(scrape_website(link, max_depth, current_depth + 1, visited))
         
         return valid_links
     
@@ -53,10 +78,11 @@ def clean_text(content):
 def save_content_to_json(data, filename='webpage_content.json'):
     with open(filename, 'a') as f:
         json.dump(data, f)
-        f.write('\n')
+        f.write(',\n')
 
 def process_link(link):
     content = get_webpage_content(link)
+   
     if content:
         cleaned_content = clean_text(content)
         data = {
@@ -68,17 +94,11 @@ def process_link(link):
     else:
         print(f"Failed to process {link}")
 
-def process_website(url):
-    links = scrape_website(url)
+def process_website(url, max_depth):
+    links = scrape_website(url, max_depth)
     
     save_links(links)
     save_links_csv(links)
-    
-    # Process links concurrently
-    with ThreadPoolExecutor(max_workers=5) as executor:
-        futures = [executor.submit(process_link, link) for link in links]
-        for future in as_completed(futures):
-            future.result()  # Ensure we raise any exceptions caught in threads
 
 if __name__ == "__main__":
-    process_website('https://amu.ac.in')
+    process_website('https://rajuljha.github.io', max_depth=6)
