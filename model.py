@@ -1,17 +1,35 @@
 from transformers import pipeline
 from sentence_transformers import SentenceTransformer, util
 import json
+import os
 
 def load_content(filename='webpage_content.json'):
-    with open(filename, 'r') as f:
-        content_list = [json.loads(line) for line in f]
-    return content_list
+    with open(filename, 'r', encoding='utf-8') as f:
+        try:
+            content_list = json.load(f)
+            print(f"Successfully loaded {len(content_list)} items from {filename}")
+            return content_list
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON: {e}")
+            print("Attempting to read file line by line...")
+            f.seek(0)  # Reset file pointer to the beginning
+            content_list = []
+            for line_number, line in enumerate(f, 1):
+                try:
+                    content = json.loads(line.strip())
+                    content_list.append(content)
+                except json.JSONDecodeError as e:
+                    print(f"Error decoding JSON on line {line_number}: {e}")
+                    print(f"Problematic line: {line[:100]}...")  # Print first 100 characters of the line
+            
+            print(f"Successfully loaded {len(content_list)} items from {filename}")
+            return content_list
 
 def generate_questions(content):
     question_generator = pipeline("text2text-generation", model="t5-base")
     questions = []
     
-    prompt = f"Generate questions: {content[:500]}" 
+    prompt = f"Generate questions: {content}" 
     generated_questions = question_generator(prompt, max_length=80, num_beams=10, num_return_sequences=10)
     
     for q in generated_questions:
@@ -40,39 +58,63 @@ def extract_topics(content):
     return keywords
 
 def save_questions_to_json(data, filename='questions_with_content.json'):
-    if len(data['questions']) == 10 and all(len(q) <= 80 for q in data['questions']):
-        with open(filename, 'a') as f:
-            json.dump(data, f, indent=4) 
+    try:
+        mode = 'a' if os.path.exists(filename) else 'w'
+        with open(filename, mode, encoding='utf-8') as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
             f.write('\n')
-    else:
-        print(f"Validation failed for {data['url']}: Questions={len(data['questions'])}, Max Length={max(len(q) for q in data['questions']) if data['questions'] else 'N/A'}")
+        print(f"Successfully saved data for {data['url']} to {filename}")
+    except Exception as e:
+        print(f"Error saving data for {data['url']}: {str(e)}")
+
 
 def process_content_for_questions(content_list, scraped_content_dict, num_urls=5):
     links = list(scraped_content_dict.keys())
 
     for entry in content_list[:num_urls]:
-        content = entry['content']
-        url = entry['url']
-        
-        questions = generate_questions(content)
-        relevant_links = find_relevant_links(content, links, scraped_content_dict)
-        topics = extract_topics(content)
-        
-        data = {
-            "url": url,
-            "content": content[:500],  
-            "questions": questions,
-            "relevant_links": relevant_links,
-            "topics": topics
-        }
-        
-        print(f"Generated data for {url}: {data}")  
-        save_questions_to_json(data)
-        print(f"Saved data for {url}")
+        try:
+            content = entry['content']
+            url = entry['url']
+            
+            print(f"Processing {url}")
+            
+            questions = generate_questions(content)
+            print(f"Generated {len(questions)} questions for {url}")
+            
+            relevant_links = find_relevant_links(content, links, scraped_content_dict)
+            print(f"Found {len(relevant_links)} relevant links for {url}")
+            
+            topics = extract_topics(content)
+            print(f"Extracted {len(topics)} topics for {url}")
+            
+            data = {
+                "url": url,
+                "content": content[:500],  
+                "questions": questions,
+                "relevant_links": relevant_links,
+                "topics": topics
+            }
+            
+            save_questions_to_json(data)
+        except Exception as e:
+            print(f"Error processing {url}: {str(e)}")
 
 if __name__ == "__main__":
-    content_list = load_content()
+    try:
+        content_list = load_content()
+        print(f"Loaded {len(content_list)} content entries")
 
-    scraped_content_dict = {entry['url']: entry['content'] for entry in content_list}
-    
-    process_content_for_questions(content_list, scraped_content_dict, num_urls=5)
+        if not content_list:
+            print("Error: No content loaded. Check your input file.")
+        else:
+            scraped_content_dict = {entry['url']: entry['content'] for entry in content_list}
+            print(f"Created scraped_content_dict with {len(scraped_content_dict)} entries")
+
+            process_content_for_questions(content_list, scraped_content_dict, num_urls=5)
+            
+            if os.path.exists('questions_with_content.json'):
+                print(f"Output file 'questions_with_content.json' has been created and its size is {os.path.getsize('questions_with_content.json')} bytes")
+            else:
+                print("Output file 'questions_with_content.json' was not created")
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")

@@ -73,12 +73,31 @@ def clean_text(content):
     soup = BeautifulSoup(content, 'html.parser')
     text = soup.get_text()
     text = re.sub(r'\s+', ' ', text)
+    
+    # Remove non-ASCII characters and most special characters
+    text = re.sub(r'[^\x20-\x7E]+', '', text)
+    
     return text.strip()
 
 def save_content_to_json(data, filename='webpage_content.json'):
-    with open(filename, 'a') as f:
-        json.dump(data, f)
-        f.write(',\n')
+    with open(filename, 'a', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False)
+        f.write('\n')  # Write each JSON object on a new line
+
+def format_json_file(filename='webpage_content.json'):
+    with open(filename, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+    # Remove any trailing commas and newlines
+    lines = [line.strip().rstrip(',') for line in lines if line.strip()]
+
+    # Wrap the content in square brackets to make it a valid JSON array
+    formatted_content = '[\n' + ',\n'.join(lines) + '\n]'
+
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.write(formatted_content)
+
+    print(f"Formatted {filename} as a valid JSON array")
 
 def process_link(link):
     content = get_webpage_content(link)
@@ -95,10 +114,16 @@ def process_link(link):
         print(f"Failed to process {link}")
 
 def process_website(url, max_depth):
+    # Clear the content file before starting
+    open('webpage_content.json', 'w').close()
+
     links = scrape_website(url, max_depth)
     
     save_links(links)
     save_links_csv(links)
+
+    # Format the JSON file after all content has been saved
+    format_json_file()
 
 if __name__ == "__main__":
     process_website('https://rajuljha.github.io', max_depth=6)
