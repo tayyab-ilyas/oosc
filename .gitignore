@@ -3,3 +3,5 @@ links.json
 questions_with_content.json
 webpages.json
 scraperenv
+venv
+main.ipynb
