@@ -44,25 +44,13 @@ def scrape_website(url, max_depth, current_depth=0, visited=None):
         valid_links = []
         
         for link in links:
-            # Ignore fragment identifiers and internal links
-            if '#' in link:
-                continue
-            
-            # Handle absolute URLs=======
-            if not is_webpage_url(link):
-                continue
-
             if soup.find('footer') and link in soup.find('footer').get_text():
                 continue
-            
             if link.startswith('http'):
-                if urlparse(link).hostname == hostname:
+                if urlparse(link).hostname == hostname and is_webpage_url(link):
                     valid_links.append(link)
             else:
-                # Handle relative URLs
-                full_link = urljoin(url, link)
-                if urlparse(full_link).hostname == hostname:
-                    valid_links.append(full_link)
+                valid_links.append(urljoin(url, link))
         
         # Process the current page
         process_link(url)
@@ -158,4 +146,4 @@ def process_website(url, max_depth):
     format_json_file()
 
 if __name__ == "__main__":
-    process_website('https://brodierobertson.xyz', max_depth=6)
+    process_website('https://brodierobertson.xyz/', max_depth=0)

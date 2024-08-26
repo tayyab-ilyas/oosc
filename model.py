@@ -10,6 +10,24 @@ import numpy as np
 from sklearn.metrics import precision_score, recall_score, f1_score
 import time
 
+def is_webpage_url(url: str) -> bool:
+    parsed_url = urlparse(url)
+
+    if parsed_url.fragment:
+        return False
+
+    file_extensions = (
+        '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+        '.jpg', '.jpeg', '.png', '.gif', '.svg', '.bmp', '.tiff', 
+        '.zip', '.rar', '.7z', '.tar', '.gz', '.mp3', '.mp4', '.avi', 
+        '.mov', '.mkv', '.wmv', '.exe', '.dmg', '.iso', '.apk'
+    )
+
+    if any(parsed_url.path.lower().endswith(ext) for ext in file_extensions):
+        return False
+
+    return True
+
 # Load environment variables
 load_dotenv()
 api_key = os.getenv("API_KEY")
