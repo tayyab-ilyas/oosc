@@ -44,14 +44,10 @@ def scrape_website(url, max_depth, current_depth=0, visited=None):
         valid_links = []
         
         for link in links:
-            if not is_webpage_url(link):
-                continue
-
             if soup.find('footer') and link in soup.find('footer').get_text():
                 continue
-            
             if link.startswith('http'):
-                if urlparse(link).hostname == hostname:
+                if urlparse(link).hostname == hostname and is_webpage_url(link):
                     valid_links.append(link)
             else:
                 valid_links.append(urljoin(url, link))
@@ -150,4 +146,4 @@ def process_website(url, max_depth):
     format_json_file()
 
 if __name__ == "__main__":
-    process_website('https://brodierobertson.xyz', max_depth=6)
+    process_website('https://brodierobertson.xyz/', max_depth=0)
