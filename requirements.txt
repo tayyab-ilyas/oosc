@@ -1,5 +1,5 @@
-beautifulsoup4
-dotenv
+bs4
+python-dotenv
 google-generativeai
 requests
 sentence-transformers

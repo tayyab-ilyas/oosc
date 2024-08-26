@@ -3,11 +3,19 @@ import os
 from sentence_transformers import SentenceTransformer, util
 import google.generativeai as genai
 from dotenv import load_dotenv
+from transformers import pipeline
+import numpy as np
+import spacy
+import numpy as np
+from sklearn.metrics import precision_score, recall_score, f1_score
+import time
 
+# Load environment variables
 load_dotenv()
 api_key = os.getenv("API_KEY")
 genai.configure(api_key=api_key)
 
+# Load content from JSON file
 def load_content(filename='webpage_content.json'):
     with open(filename, 'r', encoding='utf-8') as f:
         try:
@@ -30,6 +38,7 @@ def load_content(filename='webpage_content.json'):
             print(f"Successfully loaded {len(content_list)} items from {filename}")
             return content_list
 
+# Generate questions using Generative AI model
 def generate_questions(content):
     model = genai.GenerativeModel('gemini-pro')
     
@@ -45,8 +54,10 @@ def generate_questions(content):
     questions = response.text.strip().split('\n')
     return [question.strip() for question in questions if question.strip()]
 
+# Initialize SentenceTransformer model
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
+# Find relevant links based on content similarity
 def find_relevant_links(content, links, scraped_content_dict):
     content_embedding = model.encode(content, convert_to_tensor=True)
     relevant_links = []
@@ -61,10 +72,12 @@ def find_relevant_links(content, links, scraped_content_dict):
     relevant_links.sort(key=lambda x: x[1], reverse=True)
     return [link for link, sim in relevant_links[:5]]
 
+# Extract topics from content
 def extract_topics(content):
     keywords = [word for word in content.split() if word.isalpha()][:5]  
     return keywords
 
+# Save questions and related data to JSON file
 def save_questions_to_json(data, filename='questions_with_content.json'):
     try:
         mode = 'a' if os.path.exists(filename) else 'w'
@@ -75,6 +88,7 @@ def save_questions_to_json(data, filename='questions_with_content.json'):
     except Exception as e:
         print(f"Error saving data for {data['url']}: {str(e)}")
 
+# Verify the generated questions and links
 def verify_data(data):
     num_questions = len(data['questions'])
     questions_length_valid = all(len(q) <= 80 for q in data['questions'])
@@ -91,7 +105,83 @@ def verify_data(data):
         print(f"Number of topics: {num_topics} (Expected: 5)")
         return False
 
+# Evaluate the relevance of generated questions
+def evaluate_question_relevance(generated_questions, content):
+    content_embedding = model.encode(content, convert_to_tensor=True)
+    relevance_scores = []
+    for question in generated_questions:
+        question_embedding = model.encode(question, convert_to_tensor=True)
+        similarity = util.pytorch_cos_sim(content_embedding, question_embedding).item()
+        relevance_scores.append(similarity)
+    
+    avg_relevance = sum(relevance_scores) / len(relevance_scores) if relevance_scores else 0
+    return avg_relevance
 
+
+def load_spacy_model():
+    try:
+        return spacy.load("en_core_web_sm")
+    except OSError:
+        print("Downloading spaCy model...")
+        spacy.cli.download("en_core_web_sm")
+        return spacy.load("en_core_web_sm")
+
+nlp = load_spacy_model()
+
+def evaluate_link_relevance(content, predicted_links, scraped_content_dict):
+    content_doc = nlp(content[:1000000])  # Limit to first 1M characters to avoid memory issues
+    
+    relevance_scores = []
+    
+    for link in predicted_links:
+        link_content = scraped_content_dict.get(link, "")
+        link_doc = nlp(link_content[:1000000])  # Limit to first 1M characters
+        
+        similarity = content_doc.similarity(link_doc)
+        relevance_scores.append(similarity)
+    
+    # Normalize scores
+    total_score = sum(relevance_scores)
+    normalized_scores = [score / total_score if total_score > 0 else 0 for score in relevance_scores]
+    
+    # Calculate a weighted relevance score
+    weighted_relevance = sum(score * (1 / (i + 1)) for i, score in enumerate(normalized_scores))
+    
+    return weighted_relevance
+
+
+def load_spacy_model():
+    try:
+        return spacy.load("en_core_web_sm")
+    except OSError:
+        print("Downloading spaCy model...")
+        spacy.cli.download("en_core_web_sm")
+        return spacy.load("en_core_web_sm")
+
+nlp = load_spacy_model()
+
+def evaluate_link_relevance(content, predicted_links, scraped_content_dict):
+    content_doc = nlp(content[:100000])  # Limit to first 1M characters to avoid memory issues
+    
+    relevance_scores = []
+    
+    for link in predicted_links:
+        link_content = scraped_content_dict.get(link, "")
+        link_doc = nlp(link_content[:100000])  # Limit to first 1M characters
+        
+        similarity = content_doc.similarity(link_doc)
+        relevance_scores.append(similarity)
+    
+    # Normalize scores
+    total_score = sum(relevance_scores)
+    normalized_scores = [score / total_score if total_score > 0 else 0 for score in relevance_scores]
+    
+    # Calculate a weighted relevance score
+    weighted_relevance = sum(score * (1 / (i + 1)) for i, score in enumerate(normalized_scores))
+    
+    return weighted_relevance
+
+# Update the process_content_for_questions function
 def process_content_for_questions(content_list, scraped_content_dict, num_urls=5):
     links = list(scraped_content_dict.keys())
 
@@ -111,12 +201,19 @@ def process_content_for_questions(content_list, scraped_content_dict, num_urls=5
             topics = extract_topics(content)
             print(f"Extracted {len(topics)} topics for {url}")
             
+            question_relevance = evaluate_question_relevance(questions, content)
+            link_relevance = evaluate_link_relevance(content, relevant_links, scraped_content_dict)
+            print("Sleeping for 10sec.. to avoid rate limit.")
+            time.sleep(10)
+            
             data = {
                 "url": url,
                 "content": content[:500],  
                 "questions": questions,
                 "relevant_links": relevant_links,
-                "topics": topics
+                "topics": topics,
+                "question_relevance_score": question_relevance,
+                "link_relevance_score": link_relevance
             }
             
             if verify_data(data):
@@ -126,6 +223,7 @@ def process_content_for_questions(content_list, scraped_content_dict, num_urls=5
         except Exception as e:
             print(f"Error processing {url}: {str(e)}")
 
+# Main function to execute the process
 if __name__ == "__main__":
     try:
         content_list = load_content()

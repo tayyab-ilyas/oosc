@@ -26,11 +26,19 @@ def scrape_website(url, max_depth, current_depth=0, visited=None):
         valid_links = []
         
         for link in links:
+            # Ignore fragment identifiers and internal links
+            if '#' in link:
+                continue
+            
+            # Handle absolute URLs
             if link.startswith('http'):
                 if urlparse(link).hostname == hostname:
                     valid_links.append(link)
             else:
-                valid_links.append(urljoin(url, link))
+                # Handle relative URLs
+                full_link = urljoin(url, link)
+                if urlparse(full_link).hostname == hostname:
+                    valid_links.append(full_link)
         
         # Process the current page
         process_link(url)
