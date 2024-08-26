@@ -75,6 +75,22 @@ def save_questions_to_json(data, filename='questions_with_content.json'):
     except Exception as e:
         print(f"Error saving data for {data['url']}: {str(e)}")
 
+def verify_data(data):
+    num_questions = len(data['questions'])
+    questions_length_valid = all(len(q) <= 80 for q in data['questions'])
+    num_links = len(data['relevant_links'])
+    num_topics = len(data['topics'])
+
+    if num_questions == 10 and questions_length_valid and num_links == 5 and num_topics == 5:
+        return True
+    else:
+        print(f"Verification failed for {data['url']}:")
+        print(f"Number of questions: {num_questions} (Expected: 10)")
+        print(f"All questions under 80 characters: {questions_length_valid}")
+        print(f"Number of relevant links: {num_links} (Expected: 5)")
+        print(f"Number of topics: {num_topics} (Expected: 5)")
+        return False
+
 
 def process_content_for_questions(content_list, scraped_content_dict, num_urls=5):
     links = list(scraped_content_dict.keys())
@@ -103,7 +119,10 @@ def process_content_for_questions(content_list, scraped_content_dict, num_urls=5
                 "topics": topics
             }
             
-            save_questions_to_json(data)
+            if verify_data(data):
+                save_questions_to_json(data)
+            else:
+                print(f"Skipping saving data for {url} due to verification failure.")
         except Exception as e:
             print(f"Error processing {url}: {str(e)}")
 
