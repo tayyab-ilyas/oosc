@@ -1,7 +1,12 @@
-from transformers import pipeline
-from sentence_transformers import SentenceTransformer, util
 import json
 import os
+from sentence_transformers import SentenceTransformer, util
+import google.generativeai as genai
+from dotenv import load_dotenv
+
+load_dotenv()
+api_key = os.getenv("API_KEY")
+genai.configure(api_key=api_key)
 
 def load_content(filename='webpage_content.json'):
     with open(filename, 'r', encoding='utf-8') as f:
@@ -20,22 +25,25 @@ def load_content(filename='webpage_content.json'):
                     content_list.append(content)
                 except json.JSONDecodeError as e:
                     print(f"Error decoding JSON on line {line_number}: {e}")
-                    print(f"Problematic line: {line[:100]}...")  # Print first 100 characters of the line
+                    print(f"Problematic line: {line[:100]}...")  
             
             print(f"Successfully loaded {len(content_list)} items from {filename}")
             return content_list
 
 def generate_questions(content):
-    question_generator = pipeline("text2text-generation", model="t5-base")
-    questions = []
+    model = genai.GenerativeModel('gemini-pro')
     
-    prompt = f"Generate questions: {content}" 
-    generated_questions = question_generator(prompt, max_length=80, num_beams=10, num_return_sequences=10)
+    prompt = f"""
+    Generate 10 relevant questions from the following content:
     
-    for q in generated_questions:
-        questions.append(q['generated_text'].strip())
+    {content}
+
+    Please ensure the questions are clear, concise, and relevant to the content provided.
+    """
     
-    return questions
+    response = model.generate_content(prompt)
+    questions = response.text.strip().split('\n')
+    return [question.strip() for question in questions if question.strip()]
 
 model = SentenceTransformer('all-MiniLM-L6-v2')
 

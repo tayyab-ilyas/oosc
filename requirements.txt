@@ -1,0 +1,7 @@
+beautifulsoup4
+dotenv
+google-generativeai
+requests
+sentence-transformers
+torch
+transformers

@@ -50,12 +50,12 @@ def save_links(links, filename='links.json'):
     with open(filename, 'w') as f:
         json.dump(links, f)
 
-def save_links_csv(links, filename='links.csv'):
-    with open(filename, 'w', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(['URL'])
-        for link in links:
-            writer.writerow([link])
+# def save_links_csv(links, filename='links.csv'):
+#     with open(filename, 'w', newline='') as f:
+#         writer = csv.writer(f)
+#         writer.writerow(['URL'])
+#         for link in links:
+#             writer.writerow([link])
 
 def get_webpage_content(url):
     try:
@@ -120,7 +120,7 @@ def process_website(url, max_depth):
     links = scrape_website(url, max_depth)
     
     save_links(links)
-    save_links_csv(links)
+    # save_links_csv(links)
 
     # Format the JSON file after all content has been saved
     format_json_file()
