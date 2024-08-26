@@ -7,3 +7,4 @@ venv
 main.ipynb
 webpage_content.json
 .env
+.DS_Store
