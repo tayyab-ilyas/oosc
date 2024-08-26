@@ -4,11 +4,8 @@ from urllib.parse import urlparse
 from sentence_transformers import SentenceTransformer, util
 import google.generativeai as genai
 from dotenv import load_dotenv
-from transformers import pipeline
-import numpy as np
-import spacy
-import numpy as np
-from sklearn.metrics import precision_score, recall_score, f1_score
+import torch
+from transformers import pipeline, BertTokenizer, BertForQuestionAnswering
 import time
 
 def is_webpage_url(url: str) -> bool:
@@ -102,7 +99,7 @@ def save_questions_to_json(data, filename='questions_with_content.json'):
         mode = 'a' if os.path.exists(filename) else 'w'
         with open(filename, mode, encoding='utf-8') as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
-            f.write('\n')
+            f.write(',\n')
         print(f"Successfully saved data for {data['url']} to {filename}")
     except Exception as e:
         print(f"Error saving data for {data['url']}: {str(e)}")
@@ -124,80 +121,78 @@ def verify_data(data):
         print(f"Number of topics: {num_topics} (Expected: 5)")
         return False
 
-# Evaluate the relevance of generated questions
-def evaluate_question_relevance(generated_questions, content):
-    content_embedding = model.encode(content, convert_to_tensor=True)
-    relevance_scores = []
+# Check for CUDA, MPS, or fall back to CPU
+if torch.cuda.is_available():
+    device = torch.device('cuda')
+    print("Using CUDA (GPU) for computation.")
+elif torch.backends.mps.is_available():
+    device = torch.device('mps')
+    print("Using MPS (Apple Silicon GPU) for computation.")
+else:
+    device = torch.device('cpu')
+    print("Using CPU for computation.")
+
+qa_tokenizer = BertTokenizer.from_pretrained('bert-large-uncased-whole-word-masking-finetuned-squad')
+qa_model = BertForQuestionAnswering.from_pretrained('bert-large-uncased-whole-word-masking-finetuned-squad')
+
+qa_pipeline = pipeline("question-answering", model=qa_model, tokenizer=qa_tokenizer, device=device)
+
+# Function to get answers using the QA model
+def get_answer_from_model(question, context):
+    inputs = qa_tokenizer.encode_plus(question, context, return_tensors="pt").to(device)
+    answer_start_scores, answer_end_scores = qa_model(**inputs).values()
+
+    answer_start = torch.argmax(answer_start_scores)
+    answer_end = torch.argmax(answer_end_scores) + 1
+
+    answer = qa_tokenizer.convert_tokens_to_string(qa_tokenizer.convert_ids_to_tokens(inputs['input_ids'][0][answer_start:answer_end]))
+    return answer
+
+# Evaluate the relevance of generated questions using the QA model
+def evaluate_question_relevance_with_qa(generated_questions, content):
+    concatenated_answers = ""
+    
     for question in generated_questions:
-        question_embedding = model.encode(question, convert_to_tensor=True)
-        similarity = util.pytorch_cos_sim(content_embedding, question_embedding).item()
-        relevance_scores.append(similarity)
+        answer = get_answer_from_model(question, content)
+        concatenated_answers += " " + answer
     
-    avg_relevance = sum(relevance_scores) / len(relevance_scores) if relevance_scores else 0
-    return avg_relevance
+    # Generate an embedding for the concatenated answers
+    answer_embedding = model.encode(concatenated_answers.strip(), convert_to_tensor=True, device=device)
+    content_embedding = model.encode(content, convert_to_tensor=True, device=device)
+    
+    similarity = util.pytorch_cos_sim(content_embedding, answer_embedding).item()
+    return similarity
 
-
-def load_spacy_model():
-    try:
-        return spacy.load("en_core_web_sm")
-    except OSError:
-        print("Downloading spaCy model...")
-        spacy.cli.download("en_core_web_sm")
-        return spacy.load("en_core_web_sm")
-
-nlp = load_spacy_model()
+# Load a pre-trained sentence transformer model
+model = SentenceTransformer('all-MiniLM-L6-v2')
 
 def evaluate_link_relevance(content, predicted_links, scraped_content_dict):
-    content_doc = nlp(content[:1000000])  # Limit to first 1M characters to avoid memory issues
+    # Encode the main content
+    content_embedding = model.encode(content[:10000], convert_to_tensor=True)
     
     relevance_scores = []
-    
+    link_embeddings = []
+
+    # Encode all link contents
     for link in predicted_links:
         link_content = scraped_content_dict.get(link, "")
-        link_doc = nlp(link_content[:1000000])  # Limit to first 1M characters
-        
-        similarity = content_doc.similarity(link_doc)
-        relevance_scores.append(similarity)
-    
+        link_embedding = model.encode(link_content[:10000], convert_to_tensor=True)
+        link_embeddings.append(link_embedding)
+
+    # Stack all link embeddings
+    link_embeddings_stack = torch.stack(link_embeddings)
+
+    # Calculate cosine similarities in batch
+    similarities = util.pytorch_cos_sim(content_embedding, link_embeddings_stack)
+    relevance_scores = similarities[0].tolist()  # Convert to list
+
     # Normalize scores
     total_score = sum(relevance_scores)
     normalized_scores = [score / total_score if total_score > 0 else 0 for score in relevance_scores]
-    
+
     # Calculate a weighted relevance score
     weighted_relevance = sum(score * (1 / (i + 1)) for i, score in enumerate(normalized_scores))
-    
-    return weighted_relevance
 
-
-def load_spacy_model():
-    try:
-        return spacy.load("en_core_web_sm")
-    except OSError:
-        print("Downloading spaCy model...")
-        spacy.cli.download("en_core_web_sm")
-        return spacy.load("en_core_web_sm")
-
-nlp = load_spacy_model()
-
-def evaluate_link_relevance(content, predicted_links, scraped_content_dict):
-    content_doc = nlp(content[:100000])  # Limit to first 1M characters to avoid memory issues
-    
-    relevance_scores = []
-    
-    for link in predicted_links:
-        link_content = scraped_content_dict.get(link, "")
-        link_doc = nlp(link_content[:100000])  # Limit to first 1M characters
-        
-        similarity = content_doc.similarity(link_doc)
-        relevance_scores.append(similarity)
-    
-    # Normalize scores
-    total_score = sum(relevance_scores)
-    normalized_scores = [score / total_score if total_score > 0 else 0 for score in relevance_scores]
-    
-    # Calculate a weighted relevance score
-    weighted_relevance = sum(score * (1 / (i + 1)) for i, score in enumerate(normalized_scores))
-    
     return weighted_relevance
 
 # Update the process_content_for_questions function
@@ -220,10 +215,11 @@ def process_content_for_questions(content_list, scraped_content_dict, num_urls=5
             topics = extract_topics(content)
             print(f"Extracted {len(topics)} topics for {url}")
             
-            question_relevance = evaluate_question_relevance(questions, content)
+            # question_relevance = evaluate_question_relevance(questions, content)
+            question_relevance = evaluate_question_relevance_with_qa(questions, content)
             link_relevance = evaluate_link_relevance(content, relevant_links, scraped_content_dict)
-            print("Sleeping for 10sec.. to avoid rate limit.")
-            time.sleep(10)
+            # print("Sleeping for 10sec.. to avoid rate limit.")
+            # time.sleep(10)
             
             data = {
                 "url": url,

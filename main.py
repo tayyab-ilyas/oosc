@@ -158,4 +158,4 @@ def process_website(url, max_depth):
     format_json_file()
 
 if __name__ == "__main__":
-    process_website('https://brodierobertson.xyz', max_depth=6)
+    process_website('https://rajuljha.github.io', max_depth=6)
