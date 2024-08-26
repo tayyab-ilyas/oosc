@@ -1,5 +1,6 @@
 import json
 import os
+from urllib.parse import urlparse
 from sentence_transformers import SentenceTransformer, util
 import google.generativeai as genai
 from dotenv import load_dotenv
