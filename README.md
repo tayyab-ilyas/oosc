@@ -33,10 +33,11 @@ To set up the project on a local system, follow these steps:
 ```bash
  pip install -r requirements.txt
 ```
-   4. **Navigate to the `main.py` file** in the repository and replace the example URL: 
+   4. **Navigate to the `main.py` file** in the repository and replace the example url: 
 ```python
  if __name__ == "__main__":
- process_website('https://rajuljha.github.io/',  max_depth=6)
+    url = 'https://brodierobertson.xyz'
+ process_website(url,  max_depth=6)
 ``` 
   5. Run the command to scrape the URL:
 ```bash
@@ -44,10 +45,10 @@ To set up the project on a local system, follow these steps:
 ```
   6.  **A file named `webpage_content.json` will be created.** in the following format:
 ```json 
- [
-{"url": "https://rajuljha.github.io", "content": "The Knight Blog The Knight BlogAbout Contacttwitter github instagram linkedinRajul JhaSoftware DeveloperGSoC 2024 Final Project ReportAug 24, 2024 GSoC 2024 Final Project ReportFirst phase of GSoCJul 5, 2024 First phase of GSoCThe Night of My GSoC ResultMay 2, 2024 The Night of My GSoC ResultNext Page  2024 The Knight BlogPowered by Hugo  Paper"},
-{"url": "https://rajuljha.github.io/", "content": "The Knight Blog The Knight BlogAbout Contacttwitter github instagram linkedinRajul JhaSoftware DeveloperGSoC 2024 Final Project ReportAug 24, 2024 GSoC 2024 Final Project ReportFirst phase of GSoCJul 5, 2024 First phase of GSoCThe Night of My GSoC ResultMay 2, 2024 The Night of My GSoC ResultNext Page  2024 The Knight BlogPowered by Hugo  Paper"},
-{"url": "https://rajuljha.github.io/about/", "content": "About Me - The Knight Blog The Knight BlogAbout Contacttwitter github instagram linkedinAbout MeHi I am Rajulaka (@rajuljha)Backend Developer | Open Source EnthusiastI am a passionate backend developer from India. Im currently studying Computer Engineering at Aligarh Muslim University. My love for technology and innovation drives me to constantly learn and create, especially in the realm of open source software.Current EndeavorsGSoC 24 with FOSSology: Im thrilled to have been selected for Google Summer of Code 2024 with FOSSology. My project focuses on integrating FOSSology scanners into CI pipelines, enhancing the software compliance process. Checkout my project hereInterests and ActivitiesBackend Development: Backend development is my forte. I enjoy building robust and scalable systems that solve real-world problems. My core tech stack is Python. Nowadays, I am learning Go because of its fast nature and built in concurrency.Open Source Software: I actively create and contribute to open source projects. I believe in the power of collaborative development and the freedom it brings to software creation.Hackathons and Conferences: I love participating in hackathons and attending conferences and talks about programming and software. Recently, I attended PyDelhi, which was an incredible experience.Community Building: I co-founded an open source community at my college called ZHCET Code Oasis. Our mission is to foster a culture of open source contribution and collaboration among students.ProjectsFeel free to check out my projects on GitHub.Thank you for visiting my page! If you share similar interests or have exciting projects to discuss, dont hesitate to connect with me.Contact Me | LinkedIn 2024 The Knight BlogPowered by Hugo  Paper"},
+[
+{"url": "https://brodierobertson.xyz", "content": "Brodie's Soon To Be Blog Home Donate Videos Gear Contact Me Link Tree Brodie's Soon To Be Blog I've been meaning to put this site together for a very long time, and the result is well... make of it as you will. Hey I'm Brodie Robertson To be completely honest, I didn't think I would ever get to the point where some random person like you would want to visit my website but here we are. I don't know if you'd frame it like this but I'm most well known online for showcasing various pieces of Linux software which catch my attention, which you can check out here. If that's not your thing I'll also cover I'll also occasionally various other pieces of Linux or Linux adjacent topics such as \"What is Swap Space\" or \"Linus Torvalds Ponders The Future Of The Linux Kernel\" so if Linux is your jam I'm sure you'll find something to interest you. I'm still fairly new to Linux all things considered It may come across in my videos like I'm someone who's been using Linux for years and has tons of experience with this sort of software but in reality I've only actually been daily driving Linux close to 2 years, so occasionally I'll make some mistakes. Being interested in software for most of my life I've known about Linux for a long time but I didn't really consider trying it out until I discovered Linux content creators like Bryan Lunduke, Luke Smith, Distrotube and many others. I didn't even wait get comfortable with Linux before making videos as you'll see from some of my early content but I feel like in the last couple of months I've finally reached a point where what I know, what I know I can learn and what I can teach people can finally provide some actual value. The software I use is always changing but you can see what I typically use here Along with my video content I'll also chuck together some scripts and config files from time to time and all of this is available on my GitHub. I also have a Podcast!! To be completely honest this podcast is only a tech podcast in name, sure I love tech so it'll come up from time to time but expect anything from news, to anime, to random anecdotes from and anything in between. If you expect to leave this podcast having learned anything useful you're be dissapointed most of the time, but none the less I still try to make it a fun and worthwhile experience if you like some fun banter. If that sounds like fun check out the audio release over on Anchor. There's also a video release of the podcast over on Youtube and Odysee. And even a gaming channel! I like video games, you probably like video games so why not come and watch me play some over on YouTube, Twitch and even Dlive. My tastes are really varied, sometimes I'll play platformers like Celeste or Spyro, sometimes I'll play rogue lites/likes such as Dead Cells or Hades and sometimes I'll even play JRPGs like Kingdom Hearts and Neptunia. If I'm going to be playing some games anyway I might as well stream them so here we are, I'm not the best gamer and I'm pretty awful at talking to chat while also playing but that leads to even more fun. Get more updates about my life than you could ever want RSS Feeds I know a lot of you guys prefer doing stuff through RSS so here's a few of my links. Brodie Robertson YouTube: brodierobertson.xyz/rss Podcast YouTube: techovertea.xyz/rssvideo Podcast Audio: http://techovertea.xyz/rss Gaming YouTube: http://brodierobertson.xyz/gamingrss Note that Brave users can also donate to any of my websites or my YouTube channel through their browser. Get in contact with me here! Return Back To Home"},
+{"url": "https://brodierobertson.xyz/index.html", "content": "Brodie's Soon To Be Blog Home Donate Videos Gear Contact Me Link Tree Brodie's Soon To Be Blog I've been meaning to put this site together for a very long time, and the result is well... make of it as you will. Hey I'm Brodie Robertson To be completely honest, I didn't think I would ever get to the point where some random person like you would want to visit my website but here we are. I don't know if you'd frame it like this but I'm most well known online for showcasing various pieces of Linux software which catch my attention, which you can check out here. If that's not your thing I'll also cover I'll also occasionally various other pieces of Linux or Linux adjacent topics such as \"What is Swap Space\" or \"Linus Torvalds Ponders The Future Of The Linux Kernel\" so if Linux is your jam I'm sure you'll find something to interest you. I'm still fairly new to Linux all things considered It may come across in my videos like I'm someone who's been using Linux for years and has tons of experience with this sort of software but in reality I've only actually been daily driving Linux close to 2 years, so occasionally I'll make some mistakes. Being interested in software for most of my life I've known about Linux for a long time but I didn't really consider trying it out until I discovered Linux content creators like Bryan Lunduke, Luke Smith, Distrotube and many others. I didn't even wait get comfortable with Linux before making videos as you'll see from some of my early content but I feel like in the last couple of months I've finally reached a point where what I know, what I know I can learn and what I can teach people can finally provide some actual value. The software I use is always changing but you can see what I typically use here Along with my video content I'll also chuck together some scripts and config files from time to time and all of this is available on my GitHub. I also have a Podcast!! To be completely honest this podcast is only a tech podcast in name, sure I love tech so it'll come up from time to time but expect anything from news, to anime, to random anecdotes from and anything in between. If you expect to leave this podcast having learned anything useful you're be dissapointed most of the time, but none the less I still try to make it a fun and worthwhile experience if you like some fun banter. If that sounds like fun check out the audio release over on Anchor. There's also a video release of the podcast over on Youtube and Odysee. And even a gaming channel! I like video games, you probably like video games so why not come and watch me play some over on YouTube, Twitch and even Dlive. My tastes are really varied, sometimes I'll play platformers like Celeste or Spyro, sometimes I'll play rogue lites/likes such as Dead Cells or Hades and sometimes I'll even play JRPGs like Kingdom Hearts and Neptunia. If I'm going to be playing some games anyway I might as well stream them so here we are, I'm not the best gamer and I'm pretty awful at talking to chat while also playing but that leads to even more fun. Get more updates about my life than you could ever want RSS Feeds I know a lot of you guys prefer doing stuff through RSS so here's a few of my links. Brodie Robertson YouTube: brodierobertson.xyz/rss Podcast YouTube: techovertea.xyz/rssvideo Podcast Audio: http://techovertea.xyz/rss Gaming YouTube: http://brodierobertson.xyz/gamingrss Note that Brave users can also donate to any of my websites or my YouTube channel through their browser. Get in contact with me here! Return Back To Home"},
+]
 ... 
 ```
 Next, run:
@@ -57,69 +58,37 @@ Next, run:
   7. A JSON file named **`questions_with_content.json`** will be generated, containing all the relevant data.
 ```json
  {
-    "url": "https://rajuljha.github.io",
-    "content": "The Knight Blog The Knight BlogAbout Contacttwitter github instagram linkedinRajul JhaSoftware DeveloperGSoC 2024 Final Project ReportAug 24, 2024 GSoC 2024 Final Project ReportFirst phase of GSoCJul 5, 2024 First phase of GSoCThe Night of My GSoC ResultMay 2, 2024 The Night of My GSoC ResultNext Page  2024 The Knight BlogPowered by Hugo  Paper",
+    "url": "https://brodierobertson.xyz/videos.html",
+    "content": "Watch My Videos! Home Donate Videos Gear Contact Me Link Tree Watch My Videos! I've seen so many creators get burnt by making the stupid mistake of uploading their content onto YouTube, even just having you content somewhere else as a backup is a good idea. All of the the videos I upload get synched across multiple platforms to ensure that as many people as possible can see them, obviously losing some would hurt but it would hurt much more to dissapear after losing just one platform. Video On De",
     "questions": [
-        "1. What is the purpose of The Knight Blog?",
-        "2. Who is the author of the blog?",
-        "3. What is the main topic of the first phase of GSoC?",
-        "4. When did the author receive the results of their GSoC application?",
-        "5. What is the date of the final GSoC 2024 project report?",
-        "6. What platform hosts The Knight Blog?",
-        "7. What is the primary focus of the blog posts?",
-        "8. What programming language is used for the blog?",
-        "9. What does GSoC stand for?",
-        "10. What is the author's role in the GSoC program?"
+        "1. Why is it important to have a backup for your video content?",
+        "2. On how many platforms does the creator upload their videos?",
+        "3. How often does the creator upload videos on weekdays?",
+        "4. On which day of the week does the creator stream on the main channel?",
+        "5. What type of games are streamed on the main channel?",
+        "6. What is the purpose of the \"Video On Demand\" section?",
+        "7. Which platforms are available for streaming?",
+        "8. How can Brave users support the creator?",
+        "9. What is the creator's preferred method of communication?",
+        "10. What is the primary platform mentioned in the content?"
     ],
     "relevant_links": [
-        "https://rajuljha.github.io",
-        "https://rajuljha.github.io/",
-        "https://rajuljha.github.io/tags/github",
-        "https://rajuljha.github.io/tags/gsoc",
-        "https://rajuljha.github.io/tags/open-source"
+        "https://brodierobertson.xyz/videos.html",
+        "https://brodierobertson.xyz/donate.html",
+        "https://brodierobertson.xyz/contact.html",
+        "https://brodierobertson.xyz/link_tree.html",
+        "https://brodierobertson.xyz/gear.html"
     ],
     "topics": [
-        "The",
-        "Knight",
-        "Blog",
-        "The",
-        "Knight"
+        "Watch",
+        "My",
+        "Home",
+        "Donate",
+        "Videos"
     ],
-    "question_relevance_score": 0.6722960472106934,
-    "link_relevance_score": 0.4685312142911073
-},
-{
-    "url": "https://rajuljha.github.io/",
-    "content": "The Knight Blog The Knight BlogAbout Contacttwitter github instagram linkedinRajul JhaSoftware DeveloperGSoC 2024 Final Project ReportAug 24, 2024 GSoC 2024 Final Project ReportFirst phase of GSoCJul 5, 2024 First phase of GSoCThe Night of My GSoC ResultMay 2, 2024 The Night of My GSoC ResultNext Page  2024 The Knight BlogPowered by Hugo  Paper",
-    "questions": [
-        "1. What is the topic of the blog post?",
-        "2. Who is the author of the blog post?",
-        "3. What is the date of the blog post?",
-        "4. What is the name of the author's GSoC project?",
-        "5. What is the GSoC program?",
-        "6. What phase of GSoC is the author reporting on?",
-        "7. What did the author achieve during the first phase of GSoC?",
-        "8. When did the author receive their GSoC result?",
-        "9. What was the author's reaction to receiving their GSoC result?",
-        "10. What other topics has the author written about on their blog?"
-    ],
-    "relevant_links": [
-        "https://rajuljha.github.io",
-        "https://rajuljha.github.io/",
-        "https://rajuljha.github.io/tags/github",
-        "https://rajuljha.github.io/tags/gsoc",
-        "https://rajuljha.github.io/tags/open-source"
-    ],
-    "topics": [
-        "The",
-        "Knight",
-        "Blog",
-        "The",
-        "Knight"
-    ],
-    "question_relevance_score": 0.6853605508804321,
-    "link_relevance_score": 0.4685312142911073
-}, 
+    "question_relevance_score": 0.6612800359725952,
+    "link_relevance_score": 0.5508520098284784
+} 
 ```  
     
 ## License
